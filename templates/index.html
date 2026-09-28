@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VLSI Assistant</title>
+
+    <style>
+        :root {
+            --bg: #070b16;
+            --panel: rgba(14, 20, 38, 0.88);
+            --panel-soft: rgba(24, 34, 60, 0.72);
+            --border: rgba(255, 255, 255, 0.09);
+            --text: #f4f7ff;
+            --muted: #98a7c2;
+            --accent: #6ea8ff;
+            --accent-2: #a78bfa;
+            --user: linear-gradient(135deg, #6ea8ff, #8b5cf6);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            padding: 20px;
+            display: grid;
+            place-items: center;
+            overflow: hidden;
+            color: var(--text);
+            font-family: Inter, ui-sans-serif, system-ui, -apple-system,
+                BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background:
+                radial-gradient(circle at 10% 15%, rgba(110, 168, 255, 0.18), transparent 28%),
+                radial-gradient(circle at 90% 85%, rgba(167, 139, 250, 0.16), transparent 30%),
+                var(--bg);
+        }
+
+        .app {
+            width: min(1120px, 100%);
+            height: min(780px, 94vh);
+            display: grid;
+            grid-template-columns: 290px 1fr;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            border-radius: 30px;
+            background: var(--panel);
+            box-shadow: 0 35px 100px rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(22px);
+        }
+
+        aside {
+            padding: 28px;
+            border-right: 1px solid var(--border);
+            background:
+                linear-gradient(180deg, rgba(110, 168, 255, 0.10), transparent 55%);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            margin-bottom: 34px;
+        }
+
+        .chip {
+            width: 48px;
+            height: 48px;
+            display: grid;
+            place-items: center;
+            border-radius: 15px;
+            font-size: 22px;
+            background: linear-gradient(135deg, #6ea8ff, #a78bfa);
+            box-shadow: 0 10px 30px rgba(110, 168, 255, 0.25);
+        }
+
+        .brand h1 {
+            margin: 0;
+            font-size: 17px;
+        }
+
+        .brand span {
+            display: block;
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+
+        .card {
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.035);
+        }
+
+        .card h2 {
+            margin: 0 0 9px;
+            font-size: 14px;
+        }
+
+        .card p {
+            margin: 0;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.7;
+        }
+
+        .topics {
+            margin-top: 20px;
+        }
+
+        .tag {
+            display: inline-block;
+            margin: 4px 2px;
+            padding: 8px 10px;
+            border: 1px solid rgba(110, 168, 255, 0.15);
+            border-radius: 999px;
+            color: #b9d5ff;
+            background: rgba(110, 168, 255, 0.07);
+            font-size: 10px;
+        }
+
+        main {
+            min-width: 0;
+            display: grid;
+            grid-template-rows: auto 1fr auto;
+        }
+
+        header {
+            padding: 22px 26px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--muted);
+            font-size: 12px;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #6ee7b7;
+            box-shadow: 0 0 12px #6ee7b7;
+        }
+
+        #chat {
+            padding: 28px;
+            overflow-y: auto;
+            scroll-behavior: smooth;
+        }
+
+        .welcome {
+            max-width: 650px;
+            margin: 12px auto 30px;
+            text-align: center;
+        }
+
+        .icon {
+            margin-bottom: 10px;
+            font-size: 42px;
+        }
+
+        .welcome h2 {
+            margin: 0 0 9px;
+            font-size: clamp(25px, 4vw, 38px);
+        }
+
+        .welcome p {
+            max-width: 550px;
+            margin: 0 auto;
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .message {
+            display: flex;
+            margin: 14px 0;
+            animation: appear 0.2s ease-out;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .bubble {
+            max-width: min(78%, 720px);
+            padding: 13px 16px;
+            border-radius: 19px;
+            line-height: 1.65;
+            font-size: 14px;
+            white-space: pre-wrap;
+        }
+
+        .assistant .bubble {
+            border: 1px solid var(--border);
+            border-bottom-left-radius: 6px;
+            background: var(--panel-soft);
+        }
+
+        .user .bubble {
+            color: #fff;
+            border-bottom-right-radius: 6px;
+            background: var(--user);
+            box-shadow: 0 8px 24px rgba(110, 168, 255, 0.13);
+        }
+
+        .composer {
+            padding: 18px 22px 22px;
+            border-top: 1px solid var(--border);
+            background: rgba(7, 11, 22, 0.56);
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            padding: 8px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            background: rgba(255, 255, 255, 0.045);
+        }
+
+        textarea {
+            flex: 1;
+            min-height: 46px;
+            max-height: 130px;
+            resize: none;
+            padding: 12px 10px;
+            border: 0;
+            outline: 0;
+            color: var(--text);
+            background: transparent;
+            font: inherit;
+        }
+
+        textarea::placeholder {
+            color: #687892;
+        }
+
+        button {
+            width: 46px;
+            height: 46px;
+            align-self: flex-end;
+            border: 0;
+            border-radius: 15px;
+            cursor: pointer;
+            color: #07101f;
+            background: linear-gradient(135deg, #8bc0ff, #a78bfa);
+            font-size: 18px;
+            transition: transform 0.15s ease, filter 0.15s ease;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.08);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: wait;
+            transform: none;
+        }
+
+        .hint {
+            margin-top: 8px;
+            color: #61718a;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        @keyframes appear {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 760px) {
+            body {
+                padding: 0;
+            }
+
+            .app {
+                width: 100%;
+                height: 100vh;
+                border-radius: 0;
+                grid-template-columns: 1fr;
+            }
+
+            aside {
+                display: none;
+            }
+
+            #chat {
+                padding: 20px 16px;
+            }
+
+            .bubble {
+                max-width: 89%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <section class="app">
+        <aside>
+            <div class="brand">
+                <div class="chip">◈</div>
+                <div>
+                    <h1>VLSI Assistant</h1>
+                    <span>Focused study companion</span>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>What I can help with</h2>
+                <p>
+                    Learn VLSI concepts, CMOS, digital design, RTL,
+                    Verilog, synthesis, physical design, timing,
+                    power, memories, DFT, and exam preparation.
+                </p>
+            </div>
+
+            <div class="topics">
+                <span class="tag">CMOS</span>
+                <span class="tag">MOSFET</span>
+                <span class="tag">RTL</span>
+                <span class="tag">Verilog</span>
+                <span class="tag">ASIC</span>
+                <span class="tag">FPGA</span>
+                <span class="tag">Timing</span>
+                <span class="tag">Physical Design</span>
+                <span class="tag">Low Power</span>
+                <span class="tag">DFT</span>
+            </div>
+        </aside>
+
+        <main>
+            <header>
+                <strong>VLSI Assistant</strong>
+                <div class="status">
+                    <span class="status-dot"></span>
+                    Online
+                </div>
+            </header>
+
+            <div id="chat">
+                <div class="welcome">
+                    <div class="icon">◫</div>
+                    <h2>Design smarter. Learn deeper.</h2>
+                    <p>
+                        Ask a VLSI-related study question and get a clear,
+                        structured explanation from your AI learning assistant.
+                    </p>
+                </div>
+
+                <div class="message assistant">
+                    <div class="bubble">
+                        Hello! I’m VLSI Assistant. What VLSI concept would you like to study?
+                    </div>
+                </div>
+            </div>
+
+            <div class="composer">
+                <form id="chatForm">
+                    <textarea
+                        id="message"
+                        rows="1"
+                        placeholder="Ask a VLSI study question..."
+                        required
+                    ></textarea>
+                    <button id="sendBtn" type="submit" aria-label="Send">➤</button>
+                </form>
+
+                <div class="hint">
+                    VLSI and related educational questions only
+                </div>
+            </div>
+        </main>
+    </section>
+
+    <script>
+        const form = document.getElementById("chatForm");
+        const input = document.getElementById("message");
+        const chat = document.getElementById("chat");
+        const sendBtn = document.getElementById("sendBtn");
+
+        function addMessage(text, role) {
+            const wrapper = document.createElement("div");
+            wrapper.className = `message ${role}`;
+
+            const bubble = document.createElement("div");
+            bubble.className = "bubble";
+            bubble.textContent = text;
+
+            wrapper.appendChild(bubble);
+            chat.appendChild(wrapper);
+            chat.scrollTop = chat.scrollHeight;
+
+            return bubble;
+        }
+
+        input.addEventListener("input", () => {
+            input.style.height = "auto";
+            input.style.height = Math.min(input.scrollHeight, 130) + "px";
+        });
+
+        input.addEventListener("keydown", (event) => {
+            if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                form.requestSubmit();
+            }
+        });
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const message = input.value.trim();
+
+            if (!message) {
+                return;
+            }
+
+            addMessage(message, "user");
+
+            input.value = "";
+            input.style.height = "auto";
+            sendBtn.disabled = true;
+
+            const thinkingBubble = addMessage("Thinking...", "assistant");
+
+            try {
+                const response = await fetch("/chat", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ message })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Request failed.");
+                }
+
+                thinkingBubble.textContent = data.reply;
+            } catch (error) {
+                thinkingBubble.textContent =
+                    error.message || "Something went wrong.";
+            } finally {
+                sendBtn.disabled = false;
+                input.focus();
+                chat.scrollTop = chat.scrollHeight;
+            }
+        });
+    </script>
+</body>
+</html>
